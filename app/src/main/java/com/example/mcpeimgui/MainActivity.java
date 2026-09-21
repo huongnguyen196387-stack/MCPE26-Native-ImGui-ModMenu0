@@ -4,56 +4,98 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.opengl.GLSurfaceView;
 import android.view.MotionEvent;
-import android.view.Window;
-import android.view.WindowManager;
 
-public final class MainActivity extends Activity {
-    static { System.loadLibrary("modmenu"); }
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
-    private static native void nativeInit();
-    private static native void nativeResize(int width, int height);
+import javax.microedition.khronos.egl.EGLConfig;
+import javax.microedition.khronos.opengles.GL10;
+
+public class MainActivity extends Activity {
+
+    static {
+        System.loadLibrary("mcpeimgui");
+    }
+
+    private GLSurfaceView glView;
+
+    private static native void nativeInit(int width, int height);
     private static native void nativeRender();
-    private static native void nativeTouch(int action, float x, float y);
+    private static native void nativeTouch(
+            int action,
+            float x,
+            float y
+    );
 
     @Override
-    protected void onCreate(Bundle state) {
-        super.onCreate(state);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().setFlags(
-            WindowManager.LayoutParams.FLAG_FULLSCREEN,
-            WindowManager.LayoutParams.FLAG_FULLSCREEN
-        );
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
-        GLSurfaceView view = new GLSurfaceView(this);
-        view.setEGLContextClientVersion(3);
-        view.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
+        glView = new GLSurfaceView(this);
+        glView.setEGLContextClientVersion(3);
 
-        view.setRenderer(new GLSurfaceView.Renderer() {
-            @Override public void onSurfaceCreated(
-                    javax.microedition.khronos.egl.EGLConfig config) {
-                nativeInit();
+        glView.setRenderer(new GLSurfaceView.Renderer() {
+
+            @Override
+            public void onSurfaceCreated(
+                    GL10 gl,
+                    EGLConfig config
+            ) {
+                nativeInit(
+                        glView.getWidth(),
+                        glView.getHeight()
+                );
             }
-            @Override public void onSurfaceChanged(
-                    javax.microedition.khronos.egl.EGLConfig config,
-                    int width, int height) {
-                nativeResize(width, height);
+
+            @Override
+            public void onSurfaceChanged(
+                    GL10 gl,
+                    int width,
+                    int height
+            ) {
+                nativeInit(width, height);
             }
-            @Override public void onDrawFrame(
-                    javax.microedition.khronos.opengles.GL10 gl) {
+
+            @Override
+            public void onDrawFrame(GL10 gl) {
                 nativeRender();
             }
         });
 
-        view.setOnTouchListener((v, event) -> {
-            int a = event.getActionMasked();
-            if (a == MotionEvent.ACTION_DOWN ||
-                a == MotionEvent.ACTION_UP ||
-                a == MotionEvent.ACTION_MOVE) {
-                nativeTouch(a, event.getX(), event.getY());
-            }
+        glView.setRenderMode(
+                GLSurfaceView.RENDERMODE_CONTINUOUSLY
+        );
+
+        glView.setOnTouchListener((view, event) -> {
+
+            float x = event.getX();
+            float y = event.getY();
+
+            nativeTouch(
+                    event.getActionMasked(),
+                    x,
+                    y
+            );
+
             return true;
         });
 
-        setContentView(view);
+        setContentView(glView);
     }
-}
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (glView != null) {
+            glView.onPause();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (glView != null) {
+            glView.onResume();
+        }
+    }
+            }
