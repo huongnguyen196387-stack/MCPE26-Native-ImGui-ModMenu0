@@ -6,11 +6,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Dear ImGui
 include(FetchContent)
+
 FetchContent_Declare(
     imgui
     GIT_REPOSITORY https://github.com/ocornut/imgui.git
     GIT_TAG v1.92.3
 )
+
 FetchContent_MakeAvailable(imgui)
 
 add_library(imgui STATIC
@@ -26,20 +28,15 @@ target_include_directories(imgui PUBLIC
     ${imgui_SOURCE_DIR}
     ${imgui_SOURCE_DIR}/backends
 )
-target_link_libraries(imgui PUBLIC GLESv3 EGL android log)
 
-# Dobby hook framework
-FetchContent_Declare(
-    dobby
-    GIT_REPOSITORY https://github.com/jmpews/Dobby.git
-    GIT_TAG 5dfc854
+target_link_libraries(imgui PUBLIC
+    GLESv3
+    EGL
+    android
+    log
 )
-set(DOBBY_BUILD_EXAMPLE OFF CACHE BOOL "" FORCE)
-set(DOBBY_BUILD_TEST OFF CACHE BOOL "" FORCE)
-set(DOBBY_GENERATE_SHARED OFF CACHE BOOL "" FORCE)
-set(DOBBY_DEBUG OFF CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(dobby)
 
+# Main native library
 add_library(modmenu SHARED
     modmenu.cpp
     native_bridge.cpp
@@ -49,15 +46,12 @@ add_library(modmenu SHARED
 target_include_directories(modmenu PRIVATE
     ${imgui_SOURCE_DIR}
     ${imgui_SOURCE_DIR}/backends
-    ${dobby_SOURCE_DIR}/include
 )
 
 target_link_libraries(modmenu PRIVATE
     imgui
-    dobby
     GLESv3
     EGL
     android
     log
-    dl
 )
