@@ -3,10 +3,6 @@ package com.example.mcpeimgui;
 import android.app.Activity;
 import android.os.Bundle;
 import android.opengl.GLSurfaceView;
-import android.view.MotionEvent;
-
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -14,7 +10,7 @@ import javax.microedition.khronos.opengles.GL10;
 public class MainActivity extends Activity {
 
     static {
-        System.loadLibrary("mcpeimgui");
+        System.loadLibrary("modmenu");
     }
 
     private GLSurfaceView glView;
@@ -67,16 +63,11 @@ public class MainActivity extends Activity {
         );
 
         glView.setOnTouchListener((view, event) -> {
-
-            float x = event.getX();
-            float y = event.getY();
-
             nativeTouch(
                     event.getActionMasked(),
-                    x,
-                    y
+                    event.getX(),
+                    event.getY()
             );
-
             return true;
         });
 
@@ -98,4 +89,4 @@ public class MainActivity extends Activity {
             glView.onResume();
         }
     }
-            }
+}
